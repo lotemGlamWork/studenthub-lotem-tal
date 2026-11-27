@@ -118,3 +118,53 @@ def test_removed_course_can_be_added_again(cart):
     cart.add_to_cart("101")
     cart.remove_from_cart("101")
     assert cart.add_to_cart("101") is True
+
+
+# --- STU-302: מספר פריטים וסיכום חיסכון ---
+
+def test_empty_cart_summary(cart):
+    assert cart.get_item_count() == 0
+    assert cart.get_subtotal() == 0
+    assert cart.calculate_savings(PercentageDiscountStrategy(10)) == 0
+
+
+def test_item_count_tracks_add_and_remove(cart):
+    cart.add_to_cart("101")
+    cart.add_to_cart("202")
+    cart.add_to_cart("101")  # כפילות - לא נספרת
+    assert cart.get_item_count() == 2
+    cart.remove_from_cart("101")
+    assert cart.get_item_count() == 1
+
+
+def test_savings_with_percentage_discount(cart):
+    cart.add_to_cart("101")
+    cart.add_to_cart("202")
+    # 250 לפני, 225 אחרי 10%
+    assert cart.get_subtotal() == 250
+    assert cart.calculate_savings(PercentageDiscountStrategy(10)) == pytest.approx(25)
+
+
+def test_savings_with_fixed_discount_per_course(cart):
+    cart.add_to_cart("101")
+    cart.add_to_cart("901")
+    # 20 ש"ח על כל אחד מ-2 קורסים
+    assert cart.calculate_savings(FixedDiscountStrategy(20)) == 40
+
+
+def test_savings_with_fixed_discount_capped_at_course_price():
+    class FakeCourseService:
+        def get_course_by_id(self, course_id):
+            return {"id": course_id, "name": "Cheap", "prereqs": [], "price": 15}
+
+    cart = ShoppingService(course_service=FakeCourseService())
+    cart.add_to_cart("1")
+    # המחיר לא יורד מתחת ל-0, אז החיסכון הוא 15 ולא 20
+    assert cart.calculate_savings(FixedDiscountStrategy(20)) == 15
+
+
+def test_no_discount_means_zero_savings(cart):
+    cart.add_to_cart("101")
+    cart.add_to_cart("901")
+    assert cart.calculate_savings(DefaultStrategy()) == 0
+    assert cart.calculate_total(DefaultStrategy()) == cart.get_subtotal() == 220

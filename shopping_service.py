@@ -1,5 +1,5 @@
 # shopping_service.py - STU-203: עגלת קניות
-from strategies import IPricingStrategy
+from strategies import IPricingStrategy, DefaultStrategy
 
 
 class ShoppingService:
@@ -46,3 +46,15 @@ class ShoppingService:
     def calculate_total(self, strategy: IPricingStrategy):
         """סכום המחירים של כל הקורסים בעגלה אחרי הפעלת האסטרטגיה על כל קורס."""
         return sum(strategy.calculate_price(course["price"]) for course in self._cart)
+
+    def get_item_count(self):
+        """STU-302: מספר הקורסים בעגלה."""
+        return len(self._cart)
+
+    def get_subtotal(self):
+        """STU-302: סכום המחירים המקוריים, לפני הנחה."""
+        return self.calculate_total(DefaultStrategy())
+
+    def calculate_savings(self, strategy: IPricingStrategy):
+        """STU-302: כמה חוסכים - סכום מקורי פחות הסכום אחרי ההנחה."""
+        return self.get_subtotal() - self.calculate_total(strategy)

@@ -53,3 +53,15 @@ def test_get_formatted_prereqs_empty(service):
 
     # ASSERT
     assert prereqs_str == "None"
+
+
+# --- STU-203: get_course_by_id ---
+
+def test_get_course_by_id_found(service):
+    course = service.get_course_by_id("901")
+    assert course is not None
+    assert course["name"] == "Calculus"
+
+
+def test_get_course_by_id_not_found(service):
+    assert service.get_course_by_id("999") is None

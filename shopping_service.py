@@ -27,6 +27,18 @@ class ShoppingService:
         self._cart.append(course)
         return True
 
+    def remove_from_cart(self, course_id):
+        """
+        STU-301:
+        True  - הקורס היה בעגלה והוסר.
+        False - הקורס לא בעגלה (גם מזהה שלא קיים בכלל); בלי שגיאה.
+        """
+        for i, item in enumerate(self._cart):
+            if item["id"] == course_id:
+                del self._cart[i]
+                return True
+        return False
+
     def get_cart(self):
         """עותק של תוכן העגלה, כדי שלא ישנו אותה מבחוץ."""
         return list(self._cart)

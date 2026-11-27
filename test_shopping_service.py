@@ -81,3 +81,40 @@ def test_get_cart_returns_copy(cart):
     cart.add_to_cart("101")
     cart.get_cart().clear()
     assert len(cart.get_cart()) == 1
+
+
+# --- STU-301: הסרה מהעגלה ---
+
+def test_remove_existing_course_returns_true(cart):
+    cart.add_to_cart("101")
+    cart.add_to_cart("901")
+    assert cart.remove_from_cart("101") is True
+    assert [c["id"] for c in cart.get_cart()] == ["901"]
+
+
+def test_remove_course_not_in_cart_returns_false(cart):
+    cart.add_to_cart("101")
+    # קורס קיים בקטלוג אבל לא בעגלה
+    assert cart.remove_from_cart("202") is False
+    assert [c["id"] for c in cart.get_cart()] == ["101"]
+
+
+def test_remove_unknown_course_id_returns_false_without_error(cart):
+    assert cart.remove_from_cart("999") is False
+    assert cart.get_cart() == []
+
+
+def test_total_updates_after_removal(cart):
+    cart.add_to_cart("101")
+    cart.add_to_cart("202")
+    assert cart.calculate_total(DefaultStrategy()) == 250
+    cart.remove_from_cart("202")
+    assert cart.calculate_total(DefaultStrategy()) == 100
+    cart.remove_from_cart("101")
+    assert cart.calculate_total(DefaultStrategy()) == 0
+
+
+def test_removed_course_can_be_added_again(cart):
+    cart.add_to_cart("101")
+    cart.remove_from_cart("101")
+    assert cart.add_to_cart("101") is True

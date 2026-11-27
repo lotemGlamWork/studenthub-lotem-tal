@@ -9,7 +9,7 @@ uv venv
 .venv\Scripts\activate        # Windows  (Linux/Mac: source .venv/bin/activate)
 uv pip install -r requirements.txt
 python main.py
-pytest -q                      # 32 passed
+pytest -q                      # 54 passed
 ```
 
 ## מבנה
@@ -17,6 +17,7 @@ pytest -q                      # 32 passed
 |---|---|
 | `data.py` | הנתונים (קורסים, מחירים, דרישות קדם) |
 | `services.py` | `CourseService`: קטלוג הקורסים |
+| `shopping_service.py` | `ShoppingService`: עגלת קניות (STU-203) |
 | `strategies.py` | אסטרטגיות תמחור (Strategy Pattern) |
 | `exporters.py` | ייצוא CSV/HTML (Template Method Pattern) |
 | `student.py` | מחלקת `Student` |

@@ -21,6 +21,14 @@ class CourseService:
                     return course["name"]
         return "Unknown Course"
 
+    def get_course_by_id(self, course_id):
+        """STU-203: מחזיר את הקורס (dict) לפי מזהה, או None אם לא קיים."""
+        for dept_courses in self.db.values():
+            for course in dept_courses:
+                if course["id"] == course_id:
+                    return course
+        return None
+
     def find_courses_by_dept(self, dept):
         if dept not in self.db:
             return None 

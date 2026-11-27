@@ -76,3 +76,37 @@ class ShoppingService:
         with open(filepath, "w", encoding="utf-8", newline="") as f:
             f.write(content)
         return filepath
+
+    def checkout(self, student, strategy: IPricingStrategy):
+        """
+        STU-305: מסיים רכישה.
+        מחשב את הסכום עם האסטרטגיה, רושם את הסטודנט לכל הקורסים שבעגלה
+        (Student.add_course כבר מונע כפילויות), מרוקן את העגלה ומחזיר קבלה.
+        עגלה ריקה -> ValueError, בלי לשנות דבר.
+        """
+        if self.get_item_count() == 0:
+            raise ValueError("Cannot checkout: the cart is empty")
+
+        items = self.get_cart()
+        subtotal = self.get_subtotal()
+        total_paid = self.calculate_total(strategy)
+
+        newly_enrolled = []
+        already_enrolled = []
+        for course in items:
+            if student.add_course(course["id"]):
+                newly_enrolled.append(course["id"])
+            else:
+                already_enrolled.append(course["id"])
+
+        self.clear_cart()
+        return {
+            "student_id": student.id,
+            "items_count": len(items),
+            "enrolled_count": len(newly_enrolled),
+            "enrolled_courses": newly_enrolled,
+            "already_enrolled": already_enrolled,
+            "subtotal": subtotal,
+            "savings": subtotal - total_paid,
+            "total_paid": total_paid,
+        }

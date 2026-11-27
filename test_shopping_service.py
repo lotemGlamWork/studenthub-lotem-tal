@@ -247,3 +247,59 @@ def test_cart_usable_after_clear(cart):
     cart.clear_cart()
     assert cart.add_to_cart("101") is True
     assert cart.get_item_count() == 1
+
+
+# --- STU-305: Checkout ---
+from student import Student
+
+
+@pytest.fixture
+def student():
+    return Student("1", "Dana", "cs")
+
+
+def test_checkout_returns_receipt(cart, student):
+    cart.add_to_cart("101")
+    cart.add_to_cart("202")
+    receipt = cart.checkout(student, PercentageDiscountStrategy(10))
+    assert receipt["student_id"] == "1"
+    assert receipt["items_count"] == 2
+    assert receipt["enrolled_count"] == 2
+    assert receipt["enrolled_courses"] == ["101", "202"]
+    assert receipt["subtotal"] == 250
+    assert receipt["savings"] == pytest.approx(25)
+    assert receipt["total_paid"] == pytest.approx(225)
+
+
+def test_checkout_enrolls_student(cart, student):
+    cart.add_to_cart("101")
+    cart.add_to_cart("901")
+    cart.checkout(student, DefaultStrategy())
+    assert student.has_course("101")
+    assert student.has_course("901")
+    assert student.get_courses_count() == 2
+
+
+def test_checkout_does_not_duplicate_existing_enrollment(cart):
+    student = Student("2", "Yossi", "math", courses=["901"])
+    cart.add_to_cart("901")
+    cart.add_to_cart("101")
+    receipt = cart.checkout(student, DefaultStrategy())
+    assert student.courses == ["901", "101"]
+    assert receipt["enrolled_count"] == 1
+    assert receipt["enrolled_courses"] == ["101"]
+    assert receipt["already_enrolled"] == ["901"]
+
+
+def test_checkout_clears_cart(cart, student):
+    cart.add_to_cart("101")
+    cart.checkout(student, DefaultStrategy())
+    assert cart.get_item_count() == 0
+    assert cart.calculate_total(DefaultStrategy()) == 0
+
+
+def test_checkout_empty_cart_raises_and_changes_nothing(cart, student):
+    with pytest.raises(ValueError, match="empty"):
+        cart.checkout(student, DefaultStrategy())
+    assert student.get_courses_count() == 0
+    assert cart.get_item_count() == 0

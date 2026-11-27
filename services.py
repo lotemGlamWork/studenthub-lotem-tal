@@ -23,7 +23,7 @@ class CourseService:
 
     def find_courses_by_dept(self, dept):
         if dept not in self.db:
-            return None 
+            return []  # TEMP(STU-204): שינוי זמני לשבירת בדיקה להדגמת כשל ב-CI — לשחזר ל-None
         return self.db[dept]
 
     def get_formatted_prereqs(self, course):

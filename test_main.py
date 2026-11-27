@@ -142,3 +142,44 @@ def test_cart_summary_without_discount(monkeypatch, capsys):
     assert "Subtotal: 220.00" in out
     assert "Savings: 0.00" in out
     assert "Total: 220.00" in out
+
+
+# --- STU-303: ייצוא העגלה ב-CLI ---
+from exporters import CsvExporter
+
+
+def test_export_cart_to_csv_command(monkeypatch, capsys, tmp_path):
+    monkeypatch.chdir(tmp_path)  # cart.csv נכתב לתיקייה זמנית
+    out = run_main_with_inputs(
+        monkeypatch, capsys,
+        ["1", "cs", "101", "", "math", "901", "", "export csv", "q"],
+    )
+    assert "Cart exported to cart.csv (2 items)." in out
+    content = (tmp_path / "cart.csv").read_text(encoding="utf-8")
+    assert "101,Intro to CS\n" in content
+    assert "901,Calculus 1\n" in content
+
+
+def test_export_cart_to_html_command(monkeypatch, capsys, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    out = run_main_with_inputs(
+        monkeypatch, capsys, ["1", "cs", "202", "", "EXPORT HTML", "q"],
+    )
+    assert "Cart exported to cart.html (1 item)." in out
+    content = (tmp_path / "cart.html").read_text(encoding="utf-8")
+    assert "<tr><td>202</td><td>Data Structures</td></tr>" in content
+
+
+def test_export_empty_cart_command(monkeypatch, capsys, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    out = run_main_with_inputs(monkeypatch, capsys, ["1", "export csv", "q"])
+    assert "Cart exported to cart.csv (0 items)." in out
+    assert (tmp_path / "cart.csv").read_text(encoding="utf-8") == CsvExporter().export([])
+
+
+def test_export_invalid_format_command(monkeypatch, capsys, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    out = run_main_with_inputs(monkeypatch, capsys, ["1", "export pdf", "export", "q"])
+    assert "Error: unknown export format 'pdf'. Usage: export <csv|html>" in out
+    assert "Error: unknown export format ''. Usage: export <csv|html>" in out
+    assert list(tmp_path.iterdir()) == []

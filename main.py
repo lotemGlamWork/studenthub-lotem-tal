@@ -68,6 +68,23 @@ def remove_from_cart(cart: ShoppingService, course_id: str) -> None:
         print(f"Course {course_id} is not in the cart.\n")
 
 
+def export_cart(cart: ShoppingService, exporters: dict, fmt: str) -> None:
+    """STU-303: מייצא את העגלה ל-cart.<fmt> בעזרת ה-exporters הקיימים."""
+    exporter = exporters.get(fmt)
+    if exporter is None:
+        formats = "|".join(sorted(exporters))
+        print(f"Error: unknown export format '{fmt}'. Usage: export <{formats}>\n")
+        return
+    filename = f"cart.{fmt}"
+    try:
+        cart.export_cart(exporter, filename)
+    except OSError as e:
+        print(f"Error: could not write {filename}: {e}\n")
+        return
+    count = cart.get_item_count()
+    print(f"Cart exported to {filename} ({count} item{'s' if count != 1 else ''}).\n")
+
+
 def main():
     # 1. שלב ההרכבה (Composition) - כאן יוצרים את כל האובייקטים
     service = CourseService(db=COURSES_DB)
@@ -84,7 +101,7 @@ def main():
     print("Welcome to the Course Search Engine")
     while True:
         command = input(
-            "Enter department (cs/math), 'cart', 'remove <id>' or 'q' to quit: "
+            "Enter department (cs/math), 'cart', 'remove <id>', 'export <csv|html>' or 'q' to quit: "
         ).strip()
         dept = command.lower()
 
@@ -94,6 +111,11 @@ def main():
 
         if dept == "cart":
             print_cart(cart, student)
+            continue
+
+        # STU-303: 'export <csv|html>' - ייצוא העגלה לקובץ
+        if dept == "export" or dept.startswith("export "):
+            export_cart(cart, exporters, dept[len("export"):].strip())
             continue
 
         # STU-301: 'remove <id>' או 'remove' ואז שאלה על המזהה

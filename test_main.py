@@ -215,3 +215,44 @@ def test_cart_usable_after_clear_command(monkeypatch, capsys):
     assert "Items in cart: 1" in out
     assert "Calculus 1" in out.split("--- Your cart ---")[-1]
     assert "Intro to CS, Price" not in out.split("--- Your cart ---")[-1]
+
+
+# --- STU-305: Checkout ב-CLI ---
+
+def test_checkout_command_prints_summary(monkeypatch, capsys):
+    # Dana (cs), 10% הנחה: 101 (100) + 202 (150)
+    out = run_main_with_inputs(
+        monkeypatch, capsys,
+        ["1", "cs", "101", "", "cs", "202", "", "checkout", "q"],
+    )
+    assert "--- Purchase summary for Dana ---" in out
+    assert "Items purchased: 2" in out
+    assert "Subtotal: 250.00" in out
+    assert "Savings: 25.00" in out
+    assert "Total paid: 225.00" in out
+    assert "Enrolled in: 101, 202" in out
+
+
+def test_checkout_command_enrolls_active_student(monkeypatch, capsys):
+    out = run_main_with_inputs(
+        monkeypatch, capsys,
+        ["2", "math", "901", "", "checkout", "math", "901", "", "checkout", "q"],
+    )
+    assert "Enrolled in: 901" in out
+    assert "You are now enrolled in 1 course(s)." in out
+    # קנייה שנייה של אותו קורס - לא נרשם פעמיים
+    assert "Already enrolled (skipped): 901" in out
+
+
+def test_checkout_command_clears_cart(monkeypatch, capsys):
+    out = run_main_with_inputs(
+        monkeypatch, capsys, ["1", "cs", "101", "", "checkout", "cart", "q"],
+    )
+    assert "Your cart is empty." in out
+    assert "Items in cart: 0" in out
+
+
+def test_checkout_command_on_empty_cart(monkeypatch, capsys):
+    out = run_main_with_inputs(monkeypatch, capsys, ["1", "checkout", "q"])
+    assert "Your cart is empty, nothing to checkout." in out
+    assert "Purchase summary" not in out

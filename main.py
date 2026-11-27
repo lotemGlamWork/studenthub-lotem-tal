@@ -68,6 +68,26 @@ def remove_from_cart(cart: ShoppingService, course_id: str) -> None:
         print(f"Course {course_id} is not in the cart.\n")
 
 
+def checkout(cart: ShoppingService, student: Student) -> None:
+    """STU-305: רכישת העגלה עבור הסטודנט המחובר, עם הנחת המחלקה שלו."""
+    strategy = choose_pricing_strategy(student, student.department)
+    try:
+        receipt = cart.checkout(student, strategy)
+    except ValueError:
+        print("Your cart is empty, nothing to checkout.\n")
+        return
+    print(f"--- Purchase summary for {student.name} ---")
+    print(f"Items purchased: {receipt['items_count']}")
+    print(f"Subtotal: {receipt['subtotal']:.2f}")
+    print(f"Savings: {receipt['savings']:.2f}")
+    print(f"Total paid: {receipt['total_paid']:.2f}")
+    if receipt["enrolled_courses"]:
+        print(f"Enrolled in: {', '.join(receipt['enrolled_courses'])}")
+    if receipt["already_enrolled"]:
+        print(f"Already enrolled (skipped): {', '.join(receipt['already_enrolled'])}")
+    print(f"You are now enrolled in {student.get_courses_count()} course(s).\n")
+
+
 def clear_cart(cart: ShoppingService) -> None:
     """STU-304: מרוקן את העגלה ומדפיס כמה קורסים הוסרו."""
     removed = cart.clear_cart()
@@ -111,7 +131,7 @@ def main():
     while True:
         command = input(
             "Enter department (cs/math), 'cart', 'remove <id>', 'clear',"
-            " 'export <csv|html>' or 'q' to quit: "
+            " 'export <csv|html>', 'checkout' or 'q' to quit: "
         ).strip()
         dept = command.lower()
 
@@ -121,6 +141,11 @@ def main():
 
         if dept == "cart":
             print_cart(cart, student)
+            continue
+
+        # STU-305: 'checkout' - רכישה ורישום לקורסים
+        if dept == "checkout":
+            checkout(cart, student)
             continue
 
         # STU-304: 'clear' - ריקון העגלה

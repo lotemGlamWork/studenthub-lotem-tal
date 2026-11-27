@@ -215,3 +215,35 @@ def test_export_with_invalid_exporter_raises_and_writes_nothing(cart, tmp_path):
     with pytest.raises(AttributeError):
         cart.export_cart(None, path)
     assert not path.exists()
+
+
+# --- STU-304: ריקון העגלה ---
+
+def test_clear_populated_cart_returns_removed_count(cart):
+    cart.add_to_cart("101")
+    cart.add_to_cart("202")
+    cart.add_to_cart("901")
+    assert cart.clear_cart() == 3
+    assert cart.get_cart() == []
+
+
+def test_clear_empty_cart_returns_zero(cart):
+    assert cart.clear_cart() == 0
+    assert cart.get_cart() == []
+
+
+def test_count_and_total_are_zero_after_clear(cart):
+    cart.add_to_cart("101")
+    cart.add_to_cart("202")
+    cart.clear_cart()
+    assert cart.get_item_count() == 0
+    assert cart.calculate_total(DefaultStrategy()) == 0
+    assert cart.calculate_total(PercentageDiscountStrategy(10)) == 0
+    assert cart.calculate_savings(FixedDiscountStrategy(20)) == 0
+
+
+def test_cart_usable_after_clear(cart):
+    cart.add_to_cart("101")
+    cart.clear_cart()
+    assert cart.add_to_cart("101") is True
+    assert cart.get_item_count() == 1

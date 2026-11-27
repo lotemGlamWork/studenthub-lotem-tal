@@ -40,6 +40,12 @@ class ShoppingService:
                 return True
         return False
 
+    def clear_cart(self):
+        """STU-304: מרוקן את העגלה ומחזיר כמה קורסים הוסרו (0 אם כבר ריקה)."""
+        removed = len(self._cart)
+        self._cart.clear()
+        return removed
+
     def get_cart(self):
         """עותק של תוכן העגלה, כדי שלא ישנו אותה מבחוץ."""
         return list(self._cart)

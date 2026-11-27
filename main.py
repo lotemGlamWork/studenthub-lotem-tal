@@ -40,16 +40,21 @@ def select_student(students: dict) -> Student:
 
 
 def print_cart(cart: ShoppingService, student: Student) -> None:
-    """STU-203: מדפיס את תוכן העגלה ואת הסכום הכולל."""
+    """STU-203/302: מדפיס את תוכן העגלה וסיכום: פריטים, סכום מקורי, חיסכון וסכום סופי."""
     items = cart.get_cart()
     if not items:
-        print("Your cart is empty.\n")
+        print("Your cart is empty.")
+        print("Items in cart: 0\n")
         return
     print("--- Your cart ---")
     for course in items:
         print(f"> ID: {course['id']}, Name: {course['name']}, Price: {course['price']:.2f}")
     # בחירת האסטרטגיה נשארת אצל הלקוח; העגלה רק מפעילה אותה
     strategy = choose_pricing_strategy(student, student.department)
+    print("-" * 17)
+    print(f"Items in cart: {cart.get_item_count()}")
+    print(f"Subtotal: {cart.get_subtotal():.2f}")
+    print(f"Savings: {cart.calculate_savings(strategy):.2f}")
     print(f"Total: {cart.calculate_total(strategy):.2f}\n")
 
 

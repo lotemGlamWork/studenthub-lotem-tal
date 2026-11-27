@@ -108,3 +108,37 @@ def test_remove_command_without_id_asks_for_it(monkeypatch, capsys):
     )
     assert "Course 101 removed from cart." in out
     assert "Your cart is empty." in out
+
+
+# --- STU-302: סיכום העגלה ב-CLI ---
+
+def test_cart_summary_empty_cart(monkeypatch, capsys):
+    out = run_main_with_inputs(monkeypatch, capsys, ["1", "cart", "q"])
+    assert "Your cart is empty." in out
+    assert "Items in cart: 0" in out
+
+
+def test_cart_summary_with_discount(monkeypatch, capsys):
+    # Dana (cs), 10% הנחה: 101 (100) + 202 (150)
+    out = run_main_with_inputs(
+        monkeypatch, capsys,
+        ["1", "cs", "101", "", "cs", "202", "", "cart", "q"],
+    )
+    assert "Items in cart: 2" in out
+    assert "Subtotal: 250.00" in out
+    assert "Savings: 25.00" in out
+    assert "Total: 225.00" in out
+
+
+def test_cart_summary_without_discount(monkeypatch, capsys):
+    # לכל הסטודנטים המובנים יש הנחה, אז מחליפים את בחירת האסטרטגיה ב-DefaultStrategy
+    from strategies import DefaultStrategy
+    monkeypatch.setattr(main, "choose_pricing_strategy", lambda student, dept: DefaultStrategy())
+    out = run_main_with_inputs(
+        monkeypatch, capsys,
+        ["1", "cs", "101", "", "math", "901", "", "cart", "q"],
+    )
+    assert "Items in cart: 2" in out
+    assert "Subtotal: 220.00" in out
+    assert "Savings: 0.00" in out
+    assert "Total: 220.00" in out

@@ -53,6 +53,16 @@ def print_cart(cart: ShoppingService, student: Student) -> None:
     print(f"Total: {cart.calculate_total(strategy):.2f}\n")
 
 
+def remove_from_cart(cart: ShoppingService, course_id: str) -> None:
+    """STU-301: מסיר קורס מהעגלה ומדפיס משוב ברור."""
+    if not course_id:
+        print("No course id given, nothing removed.\n")
+    elif cart.remove_from_cart(course_id):
+        print(f"Course {course_id} removed from cart.\n")
+    else:
+        print(f"Course {course_id} is not in the cart.\n")
+
+
 def main():
     # 1. שלב ההרכבה (Composition) - כאן יוצרים את כל האובייקטים
     service = CourseService(db=COURSES_DB)
@@ -68,7 +78,10 @@ def main():
     # 2. שלב הריצה (Execution)
     print("Welcome to the Course Search Engine")
     while True:
-        dept = input("Enter department (cs/math), 'cart' or 'q' to quit: ").strip().lower()
+        command = input(
+            "Enter department (cs/math), 'cart', 'remove <id>' or 'q' to quit: "
+        ).strip()
+        dept = command.lower()
 
         if dept == "q":
             print("Goodbye!")
@@ -76,6 +89,14 @@ def main():
 
         if dept == "cart":
             print_cart(cart, student)
+            continue
+
+        # STU-301: 'remove <id>' או 'remove' ואז שאלה על המזהה
+        if dept == "remove" or dept.startswith("remove "):
+            course_id = command[len("remove"):].strip()
+            if not course_id:
+                course_id = input("Course id to remove: ").strip()
+            remove_from_cart(cart, course_id)
             continue
 
         courses = service.find_courses_by_dept(dept)

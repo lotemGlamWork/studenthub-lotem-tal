@@ -82,3 +82,29 @@ def test_add_unknown_course_shows_error(monkeypatch, capsys):
     out = run_main_with_inputs(monkeypatch, capsys, ["1", "cs", "999", "", "cart", "q"])
     assert "Error: Course '999' not found" in out
     assert "Your cart is empty." in out
+
+
+# --- STU-301: הסרה מהעגלה ב-CLI ---
+
+def test_remove_command_removes_course_and_updates_total(monkeypatch, capsys):
+    # Dana (cs), 10% הנחה: 101 + 202 = 225; אחרי הסרת 202 -> 90
+    out = run_main_with_inputs(
+        monkeypatch, capsys,
+        ["1", "cs", "101", "", "cs", "202", "", "remove 202", "cart", "q"],
+    )
+    assert "Course 202 removed from cart." in out
+    assert "Total: 90.00" in out
+
+
+def test_remove_command_course_not_in_cart(monkeypatch, capsys):
+    out = run_main_with_inputs(monkeypatch, capsys, ["1", "remove 101", "q"])
+    assert "Course 101 is not in the cart." in out
+
+
+def test_remove_command_without_id_asks_for_it(monkeypatch, capsys):
+    out = run_main_with_inputs(
+        monkeypatch, capsys,
+        ["1", "cs", "101", "", "remove", "101", "cart", "q"],
+    )
+    assert "Course 101 removed from cart." in out
+    assert "Your cart is empty." in out

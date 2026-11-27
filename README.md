@@ -9,7 +9,7 @@ uv venv
 .venv\Scripts\activate        # Windows  (Linux/Mac: source .venv/bin/activate)
 uv pip install -r requirements.txt
 python main.py
-pytest -q                      # 46 passed
+pytest -q                      # 54 passed
 ```
 
 ## מבנה

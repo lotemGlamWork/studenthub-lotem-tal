@@ -68,6 +68,15 @@ def remove_from_cart(cart: ShoppingService, course_id: str) -> None:
         print(f"Course {course_id} is not in the cart.\n")
 
 
+def clear_cart(cart: ShoppingService) -> None:
+    """STU-304: מרוקן את העגלה ומדפיס כמה קורסים הוסרו."""
+    removed = cart.clear_cart()
+    if removed == 0:
+        print("Your cart is already empty.\n")
+    else:
+        print(f"Cart cleared ({removed} item{'s' if removed != 1 else ''} removed).\n")
+
+
 def export_cart(cart: ShoppingService, exporters: dict, fmt: str) -> None:
     """STU-303: מייצא את העגלה ל-cart.<fmt> בעזרת ה-exporters הקיימים."""
     exporter = exporters.get(fmt)
@@ -101,7 +110,8 @@ def main():
     print("Welcome to the Course Search Engine")
     while True:
         command = input(
-            "Enter department (cs/math), 'cart', 'remove <id>', 'export <csv|html>' or 'q' to quit: "
+            "Enter department (cs/math), 'cart', 'remove <id>', 'clear',"
+            " 'export <csv|html>' or 'q' to quit: "
         ).strip()
         dept = command.lower()
 
@@ -111,6 +121,11 @@ def main():
 
         if dept == "cart":
             print_cart(cart, student)
+            continue
+
+        # STU-304: 'clear' - ריקון העגלה
+        if dept == "clear":
+            clear_cart(cart)
             continue
 
         # STU-303: 'export <csv|html>' - ייצוא העגלה לקובץ

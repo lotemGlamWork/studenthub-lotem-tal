@@ -183,3 +183,35 @@ def test_export_invalid_format_command(monkeypatch, capsys, tmp_path):
     assert "Error: unknown export format 'pdf'. Usage: export <csv|html>" in out
     assert "Error: unknown export format ''. Usage: export <csv|html>" in out
     assert list(tmp_path.iterdir()) == []
+
+
+# --- STU-304: ריקון העגלה ב-CLI ---
+
+def test_clear_command_on_populated_cart(monkeypatch, capsys):
+    out = run_main_with_inputs(
+        monkeypatch, capsys,
+        ["1", "cs", "101", "", "cs", "202", "", "clear", "cart", "q"],
+    )
+    assert "Cart cleared (2 items removed)." in out
+    assert "Your cart is empty." in out
+    assert "Items in cart: 0" in out
+
+
+def test_clear_command_single_item(monkeypatch, capsys):
+    out = run_main_with_inputs(monkeypatch, capsys, ["1", "cs", "101", "", "clear", "q"])
+    assert "Cart cleared (1 item removed)." in out
+
+
+def test_clear_command_on_empty_cart(monkeypatch, capsys):
+    out = run_main_with_inputs(monkeypatch, capsys, ["1", "clear", "q"])
+    assert "Your cart is already empty." in out
+
+
+def test_cart_usable_after_clear_command(monkeypatch, capsys):
+    out = run_main_with_inputs(
+        monkeypatch, capsys,
+        ["1", "cs", "101", "", "clear", "math", "901", "", "cart", "q"],
+    )
+    assert "Items in cart: 1" in out
+    assert "Calculus 1" in out.split("--- Your cart ---")[-1]
+    assert "Intro to CS, Price" not in out.split("--- Your cart ---")[-1]

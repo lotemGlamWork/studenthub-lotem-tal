@@ -168,3 +168,50 @@ def test_no_discount_means_zero_savings(cart):
     cart.add_to_cart("901")
     assert cart.calculate_savings(DefaultStrategy()) == 0
     assert cart.calculate_total(DefaultStrategy()) == cart.get_subtotal() == 220
+
+
+# --- STU-303: ייצוא העגלה לקובץ ---
+from exporters import CsvExporter, HtmlExporter
+
+
+def test_export_cart_to_csv(cart, tmp_path):
+    cart.add_to_cart("101")
+    cart.add_to_cart("901")
+    path = tmp_path / "cart.csv"
+    assert cart.export_cart(CsvExporter(), path) == path
+    content = path.read_text(encoding="utf-8")
+    # התוכן זהה בדיוק למה שה-exporter הקיים מייצר
+    assert content == CsvExporter().export(cart.get_cart())
+    assert "101,Intro\n" in content
+    assert "901,Calculus\n" in content
+
+
+def test_export_cart_to_html(cart, tmp_path):
+    cart.add_to_cart("202")
+    path = tmp_path / "cart.html"
+    cart.export_cart(HtmlExporter(), path)
+    content = path.read_text(encoding="utf-8")
+    assert content.startswith("<html><body><table>")
+    assert "<tr><td>202</td><td>DS</td></tr>" in content
+    assert "101" not in content
+
+
+def test_export_empty_cart(cart, tmp_path):
+    path = tmp_path / "cart.csv"
+    cart.export_cart(CsvExporter(), path)
+    content = path.read_text(encoding="utf-8")
+    assert content == CsvExporter().export([])
+    assert content.startswith("ID,Name\n")
+
+
+def test_export_does_not_change_cart(cart, tmp_path):
+    cart.add_to_cart("101")
+    cart.export_cart(CsvExporter(), tmp_path / "cart.csv")
+    assert cart.get_item_count() == 1
+
+
+def test_export_with_invalid_exporter_raises_and_writes_nothing(cart, tmp_path):
+    path = tmp_path / "cart.pdf"
+    with pytest.raises(AttributeError):
+        cart.export_cart(None, path)
+    assert not path.exists()

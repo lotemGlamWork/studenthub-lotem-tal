@@ -1,5 +1,6 @@
 # shopping_service.py - STU-203: עגלת קניות
 from strategies import IPricingStrategy, DefaultStrategy
+from exporters import BaseReportExporter
 
 
 class ShoppingService:
@@ -58,3 +59,14 @@ class ShoppingService:
     def calculate_savings(self, strategy: IPricingStrategy):
         """STU-302: כמה חוסכים - סכום מקורי פחות הסכום אחרי ההנחה."""
         return self.get_subtotal() - self.calculate_total(strategy)
+
+    def export_cart(self, exporter: BaseReportExporter, filepath):
+        """
+        STU-303: מייצא את הקורסים שבעגלה לקובץ.
+        הפורמט כולו אצל ה-exporter (Template Method); כאן רק כותבים את התוצאה לקובץ.
+        עגלה ריקה מייצאת דוח עם כותרת וסיום בלבד. מחזיר את הנתיב שנכתב.
+        """
+        content = exporter.export(self.get_cart())
+        with open(filepath, "w", encoding="utf-8", newline="") as f:
+            f.write(content)
+        return filepath
